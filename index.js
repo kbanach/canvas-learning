@@ -13,7 +13,7 @@ const path = require('path');
 // you can pass the parameter in the command line. e.g. node static_server.js 3000
 const port = process.argv[2] || 9000;
 
-const STATIC_FILES_DIR = 'static';
+const STATIC_FILES_DIR = 'dist';
 const DEBUGGING_MODE = true;
 
 // maps file extention to MIME types

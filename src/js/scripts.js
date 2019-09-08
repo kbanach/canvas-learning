@@ -36,6 +36,15 @@ function getVarDbg(varName, value) {
 }
 /* end ****************************/
 
+const elements = [];
+
+function updateElements(dT) {
+
+}
+
+function drawElements() {
+
+}
 
 /**********************************
  * the magic happens here:
@@ -46,6 +55,9 @@ function drawFrame(dT) {
   if (DEBUGGING) {
     printDebugs(dT);
   }
+
+  updateElements(dT);
+  drawElements();
 }
 /* end ****************************/
 
