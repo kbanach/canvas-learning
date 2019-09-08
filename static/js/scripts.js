@@ -2,45 +2,78 @@ const canvas = document.querySelector('canvas#main');
 const ctx = canvas.getContext('2d');
 
 const DEBUGGING = true;
+const TARGET_FPS = 24;
 
+let averageFps = 0;
 let lastFrameTime = -1;
+
+/**********************************
+ * debugging methods
+ */
+function printDbgMsg(msg, dbgMsgRow) {
+  ctx.font = '14px serif';
+  ctx.fillText(msg, 10, 18 * dbgMsgRow);
+}
+
+function printDebugs(dT) {
+  let i = 1;
+
+  printDbgMsg(getTimer(), i++);
+  printDbgMsg(getVarDbg('dT', dT), i++);
+  printDbgMsg(getVarDbg('target fps', TARGET_FPS), i++);
+}
 
 function clearCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-function showTimer() {
-  ctx.font = '14px serif';
-  ctx.fillText(Date.now(), 10, 20);
+function getTimer() {
+  return Date.now();
 }
 
-function showDeltaT(dt) {
-  ctx.font = '14px serif';
-  ctx.fillText(`dT: ${dt}ms`, 10, 40);
+function getVarDbg(varName, value) {
+  return `${varName}: ${value}`;
 }
+/* end ****************************/
 
-function draw() {
-  const dT = Date.now() - lastFrameTime; 
-  if (dT < (1000 / 12)) {
-    return setTimeout(
-      () => { draw(); },
-      dT,
-    );
-  }
 
-  lastFrameTime = Date.now();
-
+/**********************************
+ * the magic happens here:
+ */
+function drawFrame(dT) {
   clearCanvas();
   
   if (DEBUGGING) {
-    showTimer();
-    showDeltaT(dT);
+    printDebugs(dT);
   }
-  
-  window.requestAnimationFrame(draw);
 }
+/* end ****************************/
 
-draw();
 
-// ctx.beginPath();
-// ctx.stroke();
+
+/**********************************
+ * maintenance canvas refresh loop
+ */
+function mainLoop() {
+  const now = Date.now();
+
+  const dT = now - lastFrameTime; 
+  if (dT < (1000 / TARGET_FPS)) {
+    return setTimeout(
+      () => { mainLoop(); },
+      (1000 / TARGET_FPS) - dT,
+    );
+  }
+
+  lastFrameTime = now;
+
+  drawFrame(dT); 
+ 
+  window.requestAnimationFrame(mainLoop);
+}
+/* end ****************************/
+
+
+
+mainLoop();
+
