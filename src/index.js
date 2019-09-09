@@ -1,8 +1,10 @@
+import './style.css';
+
 const canvas = document.querySelector('canvas#main');
 const ctx = canvas.getContext('2d');
 
 const DEBUGGING = true;
-const TARGET_FPS = 24;
+const TARGET_FPS = 12;
 
 let averageFps = 0;
 let lastFrameTime = -1;

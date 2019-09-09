@@ -63,3 +63,7 @@ typings/
 # skip the dist/ directory
 dist/
 
+# ignore Vim files
+*.swp
+
+
