@@ -1,5 +1,7 @@
 import './style.css';
 
+import Circle from './circle';
+
 const canvas = document.querySelector('canvas#main');
 const ctx = canvas.getContext('2d');
 
@@ -38,28 +40,34 @@ function getVarDbg(varName, value) {
 }
 /* end ****************************/
 
-const elements = [];
+const elements = [
+  new Circle(),
+];
 
-function updateElements(dT) {
-
+function updateElements(time, dT) {
+  for (const el of elements) {
+    el.update(time, dT);
+  }
 }
 
-function drawElements() {
-
+function drawElements(ctx) {
+  for (const el of elements) {
+    el.draw(ctx);
+  }
 }
 
 /**********************************
  * the magic happens here:
  */
-function drawFrame(dT) {
+function drawFrame(time, dT) {
   clearCanvas();
   
   if (DEBUGGING) {
     printDebugs(dT);
   }
 
-  updateElements(dT);
-  drawElements();
+  updateElements(time, dT);
+  drawElements(ctx);
 }
 /* end ****************************/
 
@@ -81,7 +89,7 @@ function mainLoop() {
 
   lastFrameTime = now;
 
-  drawFrame(dT); 
+  drawFrame(now, dT); 
  
   window.requestAnimationFrame(mainLoop);
 }
