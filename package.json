@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "serve": "node index",
-    "copy:static": "cp static/index.html dist/",
+    "copy:static": "mkdir -p dist && cp static/index.html dist/",
     "dev": "npm run copy:static && webpack-dev-server --open",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run copy:static && webpack"
