@@ -1,5 +1,5 @@
 export class DebugLog {
-  private currentContent: string;
+  private currentContent = '';
 
   constructor(
     private readonly tag: string,
@@ -12,6 +12,7 @@ export class DebugLog {
   }
 
   print(): void {
-    this.container.innerHTML = `[${this.tag}] ${this.currentContent}`;
+    if (this.currentContent)
+      this.container.innerHTML = `[${this.tag}] ${this.currentContent}`;
   }
 }

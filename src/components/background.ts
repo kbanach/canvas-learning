@@ -110,7 +110,6 @@ export class Background {
   }
 
   private drawBackground(offsetX = 0) {
-    console.log('offsetX', offsetX);
     this.ctx.drawImage(this.backgroundImageEl, offsetX, 0);
   }
 

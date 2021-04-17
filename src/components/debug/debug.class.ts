@@ -15,6 +15,7 @@ export class Debug {
     if (!el) throw new Error('Could not find element for debugging output');
 
     this.debugEl = el;
+    this.debugEl.innerHTML = '';
   }
 
   getLogger(tag: string): DebugLog {
