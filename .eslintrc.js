@@ -29,6 +29,13 @@ module.exports = {
   },
   plugins: ['@typescript-eslint'],
   rules: {
+    // start - mine
+    '@typescript-eslint/no-unsafe-member-access': 'off',
+    '@typescript-eslint/no-this-alias': 'off',
+    '@typescript-eslint/no-unsafe-assignment': 'off',
+    '@typescript-eslint/restrict-template-expressions': 'off',
+    // end - mine
+
     '@typescript-eslint/array-type': [
       'error',
       {
@@ -62,12 +69,6 @@ module.exports = {
       },
     ],
     '@typescript-eslint/interface-name-prefix': 'off',
-
-    // start - mine
-    '@typescript-eslint/no-this-alias': 'off',
-    '@typescript-eslint/no-unsafe-assignment': 'off',
-    // end - mine
-
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-parameter-properties': 'off',
     '@typescript-eslint/no-use-before-define': 'off',

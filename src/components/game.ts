@@ -1,18 +1,24 @@
 import backgroundImgSrc from '!!file-loader!../static/background.jpg';
-import { Background } from './background';
+import { Background, SCROLL_DIRECTION } from './background';
+import { Debug } from './debug/debug.class';
 
 export class Game {
-  private canvasEl: HTMLCanvasElement;
-  private debugEl: HTMLElement;
-  private ctx: CanvasRenderingContext2D;
-
+  private shouldRun: boolean;
   private lastTimestamp: number;
+
+  private debug: Debug;
+
+  private canvasEl: HTMLCanvasElement;
+  private ctx: CanvasRenderingContext2D;
 
   private background: Background;
 
-  constructor(canvasId: string) {
-    this.debugEl = document.querySelector('#debug') as HTMLElement;
+  private requestedAnimationFrame: number;
 
+  constructor(canvasId: string) {
+    this.shouldRun = true;
+
+    this.debug = new Debug('#debug');
     const el = document.getElementById(canvasId) as HTMLCanvasElement;
 
     if (el === null)
@@ -25,22 +31,36 @@ export class Game {
       backgroundImgSrc,
       this.canvasEl,
       this.ctx,
-      this.debugEl
+      this.debug.getLogger('background')
     );
+
+    this.background.setScroll(250, SCROLL_DIRECTION.FROM_RIGHT_TO_LEFT);
+  }
+
+  eject(): void {
+    this.shouldRun = false;
+    window.cancelAnimationFrame(this.requestedAnimationFrame);
+    console.log('Ejected now!');
   }
 
   draw(): void {
-    window.requestAnimationFrame((timestamp: number) => {
-      if (!this.lastTimestamp) this.lastTimestamp = timestamp;
+    if (!this.shouldRun) return;
 
-      const delta = timestamp - this.lastTimestamp;
-      this.lastTimestamp = timestamp;
+    this.requestedAnimationFrame = window.requestAnimationFrame(
+      (timestamp: number) => {
+        if (!this.shouldRun) return;
+        if (!this.lastTimestamp) this.lastTimestamp = timestamp;
 
-      this.ctx.clearRect(0, 0, this.canvasEl.width, this.canvasEl.height);
-      this.background.draw(delta);
+        const delta = timestamp - this.lastTimestamp;
+        this.lastTimestamp = timestamp;
 
-      // recursive call
-      this.draw();
-    });
+        this.ctx.clearRect(0, 0, this.canvasEl.width, this.canvasEl.height);
+        this.background.draw(delta);
+        this.debug.printLogs(delta);
+
+        // recursive call
+        this.draw();
+      }
+    );
   }
 }

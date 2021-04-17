@@ -2,7 +2,6 @@ import './index.css';
 import { Game } from './components/game';
 
 const canvas = new Game('canvas');
-
 canvas.draw();
 
 /* eslint @typescript-eslint/no-unsafe-member-access: "off",
@@ -15,6 +14,7 @@ declare let module: { hot: any };
 
 if (module.hot) {
   module.hot.accept('./components/game', () => {
+    canvas.eject();
     const newCanvas = new Game('canvas');
 
     newCanvas.draw();
