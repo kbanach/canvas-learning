@@ -1,28 +1,40 @@
 import backgroundImgSrc from '!!file-loader!../static/background.jpg';
 import { Background, SCROLL_DIRECTION } from './background';
 import { Debug } from './debug/debug.class';
+import { debugPoint } from './debug/helpers';
 import { GameInput } from './input/game-input.class';
 import { Range } from './input/range.class';
 
 export class Game {
-  private shouldRun: boolean;
+  private shouldRun = true;
   private lastTimestamp: number;
 
   private debug: Debug;
+  private DRAW_BOUNDARIES_DEBUG = true;
 
   private canvasEl: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+  private mousePressed = false;
+  private mousePressEventDensityMs = 50;
+  private lastMousePress = 0;
 
   private background: Background;
 
-  private inputs: GameInput<any>[] = [];
+  private inputs: GameInput<string | number>[] = [];
 
   private requestedAnimationFrame: number;
 
   constructor(canvasId: string) {
-    this.shouldRun = true;
-
     this.debug = new Debug('#debug');
+
+    this.createCanvas(canvasId);
+
+    this.addBackground();
+    this.addInputs();
+    this.addMouseHandling();
+  }
+
+  createCanvas(canvasId: string): void {
     const el = document.getElementById(canvasId) as HTMLCanvasElement;
 
     if (el === null)
@@ -30,16 +42,51 @@ export class Game {
 
     this.canvasEl = el;
     this.ctx = el.getContext('2d') as CanvasRenderingContext2D;
+  }
 
-    this.background = new Background(
-      backgroundImgSrc,
-      this.canvasEl,
-      this.ctx,
-      this.debug.getLogger('background')
-    );
+  addMouseHandling(): void {
+    const mouseLogger = this.debug.getLogger('mousemove');
 
-    this.background.setScroll(250, SCROLL_DIRECTION.FROM_RIGHT_TO_LEFT);
+    this.canvasEl.addEventListener('mousemove', (evt) => {
+      evt.preventDefault();
 
+      const currentTime = Date.now();
+
+      if (currentTime - this.lastMousePress < this.mousePressEventDensityMs)
+        return;
+
+      this.lastMousePress = currentTime;
+
+      if (this.mousePressed) {
+        const canvasXoffset =
+          this.canvasEl.offsetLeft + this.canvasEl.clientLeft;
+        const canvasYoffset = this.canvasEl.offsetTop + this.canvasEl.clientTop;
+
+        const mouseOnCanvasX = evt.clientX - canvasXoffset;
+        const mouseOnCanvasY = evt.clientY - canvasYoffset;
+
+        mouseLogger.setContent(
+          `mouseOnCanvasX: ${mouseOnCanvasX}\nmouseOnCanvasY: ${mouseOnCanvasY}`
+        );
+
+        this.inputs.forEach((i) =>
+          i.handleClick(mouseOnCanvasX, mouseOnCanvasY)
+        );
+      }
+    });
+
+    this.canvasEl.addEventListener('mousedown', (evt: MouseEvent) => {
+      evt.preventDefault();
+      this.mousePressed = true;
+    });
+
+    this.canvasEl.addEventListener('mouseup', (evt: MouseEvent) => {
+      evt.preventDefault();
+      this.mousePressed = false;
+    });
+  }
+
+  addInputs(): void {
     const backgroundSpeedRangeInput: Range = new Range(
       this.canvasEl,
       this.ctx,
@@ -47,7 +94,7 @@ export class Game {
     );
 
     backgroundSpeedRangeInput
-      .setPosition(150, 250)
+      .setPosition(500, 500)
       .setSize(200, 35)
       .setMin(0)
       .setMax(100)
@@ -60,18 +107,17 @@ export class Game {
     backgroundSpeedRangeInput.value = 50;
 
     this.inputs.push(backgroundSpeedRangeInput);
+  }
 
-    this.canvasEl.addEventListener('click', (evt: MouseEvent) => {
-      evt.preventDefault();
+  addBackground(): void {
+    this.background = new Background(
+      backgroundImgSrc,
+      this.canvasEl,
+      this.ctx,
+      this.debug.getLogger('background')
+    );
 
-      const canvasXoffset = this.canvasEl.offsetLeft + this.canvasEl.clientLeft;
-      const canvasYoffset = this.canvasEl.offsetTop + this.canvasEl.clientTop;
-
-      const mouseOnCanvasX = evt.clientX - canvasXoffset;
-      const mouseOnCanvasY = evt.clientY - canvasYoffset;
-
-      this.inputs.forEach((i) => i.handleClick(mouseOnCanvasX, mouseOnCanvasY));
-    });
+    this.background.setScroll(250, SCROLL_DIRECTION.FROM_RIGHT_TO_LEFT);
   }
 
   eject(): void {
@@ -92,8 +138,8 @@ export class Game {
         this.lastTimestamp = timestamp;
 
         this.ctx.clearRect(0, 0, this.canvasEl.width, this.canvasEl.height);
-        this.background.draw(delta);
-        this.inputs.forEach((i) => i.draw());
+        this.background.draw(delta, this.DRAW_BOUNDARIES_DEBUG);
+        this.inputs.forEach((i) => i.draw(delta, this.DRAW_BOUNDARIES_DEBUG));
         this.debug.printLogs(delta);
 
         // recursive call

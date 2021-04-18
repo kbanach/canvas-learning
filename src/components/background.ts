@@ -1,11 +1,12 @@
 import { DebugLog } from './debug/debug-log.class';
+import { Drawable } from './drawable.type';
 
 export enum SCROLL_DIRECTION {
   FROM_LEFT_TO_RIGHT = 'left',
   FROM_RIGHT_TO_LEFT = 'right',
 }
 
-export class Background {
+export class Background implements Drawable {
   private readonly backgroundImageEl: HTMLImageElement;
 
   private backgroundSpeedPxPerSec = 0;
@@ -13,6 +14,7 @@ export class Background {
 
   private backgroundOffset: number;
   private backgroundImageWidth: number;
+  private backgroundImageHeight: number;
 
   private backgroundImageRepeat: number;
   private backgroundCopiesAfter: number;
@@ -30,6 +32,7 @@ export class Background {
 
     this.backgroundImageEl.onload = (elem: any) => {
       this.backgroundImageWidth = elem?.target?.width;
+      this.backgroundImageHeight = elem?.target?.height;
 
       this.backgroundImageRepeat =
         Math.ceil(this.canvasEl.width / this.backgroundImageWidth) + 1;
@@ -53,12 +56,12 @@ export class Background {
     return nr?.toFixed(4) ?? nr;
   }
 
-  draw(delta: number): void {
+  draw(delta: number, drawBoundaries: boolean): void {
     this.scrollBackground(delta);
 
     this.logger.setContent(this.toString());
 
-    this.drawBackgroundPack();
+    this.drawBackgroundPack(drawBoundaries);
   }
 
   private scrollBackground(delta: number): void {
@@ -89,7 +92,7 @@ export class Background {
     }
   }
 
-  private drawBackgroundPack() {
+  private drawBackgroundPack(drawBoundaries: boolean) {
     this.ctx.save();
     this.ctx.translate(this.backgroundOffset, 0);
 
@@ -99,7 +102,7 @@ export class Background {
     this.drawBackground(this.backgroundImageWidth * -1);
 
     // drawing "main" background frame
-    this.drawBackground();
+    this.drawBackground(0, true);
 
     // drawing buffers on right from "main" background frame, to fill the canvas
     for (let i = 1; i <= this.backgroundCopiesAfter; i++) {
@@ -109,8 +112,16 @@ export class Background {
     this.ctx.restore();
   }
 
-  private drawBackground(offsetX = 0) {
+  private drawBackground(offsetX = 0, drawBoundaries = false) {
     this.ctx.drawImage(this.backgroundImageEl, offsetX, 0);
+
+    if (drawBoundaries)
+      this.ctx.strokeRect(
+        0,
+        0,
+        this.backgroundImageWidth,
+        this.backgroundImageHeight
+      );
   }
 
   toString(): string {

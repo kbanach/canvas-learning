@@ -1,4 +1,5 @@
 import { DebugLog } from '../debug/debug-log.class';
+import { debugPoint, debugRectangle } from '../debug/helpers';
 import { GameInput } from './game-input.class';
 
 export class Range extends GameInput<number> {
@@ -8,6 +9,9 @@ export class Range extends GameInput<number> {
   private max: number;
 
   private currentPercentageOfRange: number;
+
+  private comfortXoffset = 10;
+  private comfortYoffset = 5;
 
   constructor(
     canvasEl: HTMLCanvasElement,
@@ -29,21 +33,29 @@ export class Range extends GameInput<number> {
 
   handleClick(clickXpos: number, clickYpos: number): void {
     const insideOnX =
-      clickXpos >= this.xPos && clickXpos <= this.xPos + this.width;
+      clickXpos >= this.xPos - this.comfortXoffset &&
+      clickXpos <= this.xPos + this.width + this.comfortXoffset;
     const insideOnY =
-      clickYpos >= this.yPos && clickYpos <= this.yPos + this.height;
+      clickYpos >= this.yPos - this.comfortXoffset &&
+      clickYpos <= this.yPos + this.height + this.comfortYoffset;
 
     if (insideOnX && insideOnY) {
       const newValue = this.calulateValueFromPointInLength(
-        clickXpos - this.xPos
+        clickXpos - this.xPos - this.comfortXoffset
       );
 
       this.value = newValue;
     }
+
+    this.logger.setContent(
+      `clickXpos: ${clickXpos}\nclickYpos:${clickYpos}\n${this.toString()}`
+    );
   }
 
   private calulateValueFromPointInLength(clickXpos: number): number {
-    return this.max * (1 / (this.width / clickXpos));
+    const newValue = this.max * (1 / (this.width / clickXpos));
+
+    return Math.min(Math.max(newValue, this.min), this.max);
   }
 
   set value(newValue: number) {
@@ -51,14 +63,12 @@ export class Range extends GameInput<number> {
     this.updatePercentage();
   }
 
-  draw(): void {
-    this.drawSlider();
-    this.drawCurrentPointInRange();
-
-    this.logger.setContent(this.toString());
+  draw(delta: number, drawBoundaries = false): void {
+    this.drawSlider(drawBoundaries);
+    this.drawCurrentPointInRange(drawBoundaries);
   }
 
-  private drawSlider(): void {
+  private drawSlider(drawBoundaries = false): void {
     const halfOfHeight = Math.ceil(this.height / 2);
     const topOffset = Math.ceil(this.height / 4);
 
@@ -72,24 +82,52 @@ export class Range extends GameInput<number> {
       halfOfHeight
     );
 
+    if (drawBoundaries) {
+      debugRectangle(
+        this.ctx,
+        this.xPos,
+        this.yPos,
+        this.width,
+        this.height,
+        'black'
+      );
+
+      debugRectangle(
+        this.ctx,
+        this.xPos - this.comfortXoffset,
+        this.yPos - this.comfortYoffset,
+        this.width + this.comfortXoffset * 2,
+        this.height + this.comfortYoffset * 2,
+        'red'
+      );
+    }
     this.ctx.restore();
   }
 
-  private drawCurrentPointInRange(): void {
+  private drawCurrentPointInRange(drawBoundaries = false): void {
     this.ctx.save();
+
+    const sliderCenterX =
+      this.xPos + this.width * this.currentPercentageOfRange;
+    const sliderCenterY = this.yPos + this.height / 2;
 
     this.ctx.fillStyle = 'red';
     this.ctx.beginPath();
     this.ctx.ellipse(
-      this.xPos + this.width * this.currentPercentageOfRange,
-      this.yPos,
-      15,
-      this.height,
+      sliderCenterX,
+      sliderCenterY,
+      7,
+      this.height / 2,
       0,
       0,
       2 * Math.PI
     );
     this.ctx.fill();
+    this.ctx.closePath();
+
+    if (drawBoundaries) {
+      debugPoint(this.ctx, sliderCenterX, sliderCenterY);
+    }
 
     this.ctx.restore();
   }

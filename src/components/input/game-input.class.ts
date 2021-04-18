@@ -1,6 +1,7 @@
 import { DebugLog } from '../debug/debug-log.class';
+import { Drawable } from '../drawable.type';
 
-export abstract class GameInput<T = string> {
+export abstract class GameInput<T = string> implements Drawable {
   protected xPos = 0;
   protected yPos = 0;
 
@@ -48,5 +49,5 @@ export abstract class GameInput<T = string> {
 
   abstract handleClick(clickXpos: number, clickYpos: number): void;
 
-  abstract draw(): void;
+  abstract draw(delta?: number, drawBoundaries?: boolean): void;
 }

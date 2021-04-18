@@ -5,6 +5,15 @@ body {
 #debug {
   text-align: left;
   display: inline-block;
-  width: 600px;
+
   white-space: pre;
+
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+}
+
+#debug > div {
+  width: 25%;
+  text-overflow: ellipsis;
 }

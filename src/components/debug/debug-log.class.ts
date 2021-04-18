@@ -12,7 +12,6 @@ export class DebugLog {
   }
 
   print(): void {
-    if (this.currentContent)
-      this.container.innerHTML = `[${this.tag}] ${this.currentContent}`;
+    if (this.currentContent) this.container.innerHTML = this.currentContent;
   }
 }
